@@ -2,13 +2,13 @@ import pandas as pd
 import numpy as np
 import pickle
 
-DATASET_PATH1 = 'ssh/dataset/dataset_neuroscience_1.xlsx'
-DATASET_PATH2 = 'ssh/dataset/dataset_neuroscience_2.xlsx'
-DATASET_PATH3 = 'ssh/dataset/dataset_neuroscience_3.xlsx'
-DATASET_PATH4 = 'ssh/dataset/dataset_neuroscience_4.xlsx'
-DATASET_PATH5 = 'ssh/dataset/dataset_neuroscience_vo.xlsx'
+DATASET_PATH1 = "dataset_neuroscience_1.xlsx"
+DATASET_PATH2 = "dataset_neuroscience_2.xlsx"
+DATASET_PATH3 = "dataset_neuroscience_3.xlsx"
+DATASET_PATH4 = "dataset_neuroscience_4.xlsx"
+DATASET_PATH5 = "dataset_neuroscience_vo.xlsx"
 
-OUTPUT_PATH = 'ssh/data/data.pkl'
+OUTPUT_PATH = "../data/data.pkl"
 
 
 def load_data_from_dataset():
@@ -85,7 +85,7 @@ def convert_type_data(data_clean1, data_clean2, data_clean3, data_clean4, data_c
                 region_id.append(r)
                 group_id.append(group_map[group])
 
-        results.append((counts, region_id, group_id))
+        results.append((counts, region_id, group_id, groups))
 
     return results, metadatas
 
@@ -120,7 +120,7 @@ def save_data_to_pickle(data_dicts):
         print(f"  - Régions: {data['n_regions']}")
         print(f"  - Groupes: {data['n_groups']}")
         print(f"  - Observations: {len(data['counts'])}")
-        print(f"  - Groupes: {data['group_names']}")
+        print(f"  - Groupes: {data['group_names']}\n")
 
 
 def run():
