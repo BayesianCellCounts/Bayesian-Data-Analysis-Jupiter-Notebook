@@ -2,13 +2,13 @@ import pandas as pd
 import numpy as np
 import pickle
 
-DATASET_PATH1 = "ssh/dataset/dataset_neuroscience_1.xlsx"
-DATASET_PATH2 = "ssh/dataset/dataset_neuroscience_2.xlsx"
-DATASET_PATH3 = "ssh/dataset/dataset_neuroscience_3.xlsx"
-DATASET_PATH4 = "ssh/dataset/dataset_neuroscience_4.xlsx"
-DATASET_PATH5 = "ssh/dataset/dataset_neuroscience_vo.xlsx"
+DATASET_PATH1 = 'ssh/dataset/dataset_neuroscience_1.xlsx'
+DATASET_PATH2 = 'ssh/dataset/dataset_neuroscience_2.xlsx'
+DATASET_PATH3 = 'ssh/dataset/dataset_neuroscience_3.xlsx'
+DATASET_PATH4 = 'ssh/dataset/dataset_neuroscience_4.xlsx'
+DATASET_PATH5 = 'ssh/dataset/dataset_neuroscience_vo.xlsx'
 
-OUTPUT_PATH = "ssh/data/data.pkl"
+OUTPUT_PATH = 'ssh/data/data.pkl'
 
 
 def load_data_from_dataset():
@@ -64,163 +64,77 @@ def convert_type_data(data_clean1, data_clean2, data_clean3, data_clean4, data_c
 
     # Convert large format to long format
 
-    # Dataset 1
-    counts1, region_id1, group_id1 = [], [], []
+    # Dataset 1, Dataset 2, Dataset 3, Dataset 4, Dataset 5
 
-    groups1 = list(set(col.split(' ')[0] for col in count_data1.columns))
-    group1_map = {g: i for i, g in enumerate(groups1)}
+    results = []
+    metadatas = [metadata1, metadata2, metadata3, metadata4, metadata5]
+    count_datas = [count_data1, count_data2, count_data3, count_data4, count_data5]
 
-    for r, region in enumerate(metadata1['abbreviation']):
-        for c, col in enumerate(count_data1.columns):
-            group = col.split(' ')[0]
-            counts1.append(count_data1.iloc[r, c])
-            region_id1.append(r)
-            group_id1.append(group1_map[group])
+    for i, (metadata, count_data) in enumerate(zip(metadatas, count_datas)):
 
-    # Dataset 2
-    counts2, region_id2, group_id2 = [], [], []
+        counts, region_id, group_id = [], [], []
 
-    groups2 = list(set(col.split(' ')[0] for col in count_data2.columns))
-    group2_map = {g: i for i, g in enumerate(groups2)}
+        groups = list(set(col.split(' ')[0] for col in count_data.columns))
 
-    for r, region in enumerate(metadata2['abbreviation']):
-        for c, col in enumerate(count_data2.columns):
-            group = col.split(' ')[0]
-            counts2.append(count_data2.iloc[r, c])
-            region_id2.append(r)
-            group_id2.append(group2_map[group])
+        group_map = {g: j for j, g in enumerate(groups)}
 
-    # Dataset 3
-    counts3, region_id3, group_id3 = [], [], []
+        for r, region in enumerate(metadata['abbreviation']):
+            for c, col in enumerate(count_data.columns):
+                group = col.split(' ')[0]
+                counts.append(count_data.iloc[r, c])
+                region_id.append(r)
+                group_id.append(group_map[group])
 
-    groups3 = list(set(col.split(' ')[0] for col in count_data3.columns))
-    group3_map = {g: i for i, g in enumerate(groups3)}
+        results.append((counts, region_id, group_id))
 
-    for r, region in enumerate(metadata3['abbreviation']):
-        for c, col in enumerate(count_data3.columns):
-            group = col.split(' ')[0]
-            counts3.append(count_data3.iloc[r, c])
-            region_id3.append(r)
-            group_id3.append(group3_map[group])
-
-    # Dataset 4
-    counts4, region_id4, group_id4 = [], [], []
-
-    groups4 = list(set(col.split(' ')[0] for col in count_data4.columns))
-    group4_map = {g: i for i, g in enumerate(groups4)}
-
-    for r, region in enumerate(metadata4['abbreviation']):
-        for c, col in enumerate(count_data4.columns):
-            group = col.split(' ')[0]
-            counts4.append(count_data4.iloc[r, c])
-            region_id4.append(r)
-            group_id4.append(group4_map[group])
-
-    # Dataset 5
-    counts5, region_id5, group_id5 = [], [], []
-
-    groups5 = list(set(col.split(' ')[0] for col in count_data5.columns))
-    group5_map = {g: i for i, g in enumerate(groups5)}
-
-    for r, region in enumerate(metadata5['abbreviation']):
-        for c, col in enumerate(count_data5.columns):
-            group = col.split(' ')[0]
-            counts5.append(count_data5.iloc[r, c])
-            region_id5.append(r)
-            group_id5.append(group5_map[group])
-
-    return counts1, region_id1, group_id1, counts2, region_id2, group_id2, counts3, region_id3, group_id3, counts4, region_id4, group_id4, counts5, region_id5, group_id5
+    return results, metadatas
 
 
-def prepare_data_dicts(counts1, region_id1, group_id1, counts2, region_id2, group_id2, counts3, region_id3, group_id3,
-                       counts4, region_id4, group_id4,
-                       counts5, region_id5, group_id5, metadata1, metadata2, metadata3, metadata4, metadata5, groups1,
-                       groups2, groups3, groups4, groups5):
+def prepare_data_dicts(results, metadatas):
     # Prepare data dictionaries
-    data1 = {
-        'counts': np.array(counts1, dtype=int),
-        'region_id': np.array(region_id1),
-        'group_id': np.array(group_id1),
-        'n_regions': len(metadata1),
-        'n_groups': len(groups1),
-        'region_names': metadata1['abbreviation'].tolist(),
-        'group_names': groups1
-    }
 
-    data2 = {
-        'counts': np.array(counts2, dtype=int),
-        'region_id': np.array(region_id2),
-        'group_id': np.array(group_id2),
-        'n_regions': len(metadata2),
-        'n_groups': len(groups2),
-        'region_names': metadata2['abbreviation'].tolist(),
-        'group_names': groups2
-    }
+    data_dicts = []
 
-    data3 = {
-        'counts': np.array(counts3, dtype=int),
-        'region_id': np.array(region_id3),
-        'group_id': np.array(group_id3),
-        'n_regions': len(metadata3),
-        'n_groups': len(groups3),
-        'region_names': metadata3['abbreviation'].tolist(),
-        'group_names': groups3
-    }
+    for i, ((counts, region_id, group_id, groups), metadata) in enumerate(zip(results, metadatas)):
+        data_dict = {
+            'counts': np.array(counts, dtype=int),
+            'region_id': np.array(region_id),
+            'group_id': np.array(group_id),
+            'n_regions': len(metadata),
+            'n_groups': len(set(group_id)),
+            'region_names': metadata['abbreviation'].tolist(),
+            'group_names': groups
+        }
 
-    data4 = {
-        'counts': np.array(counts4, dtype=int),
-        'region_id': np.array(region_id4),
-        'group_id': np.array(group_id4),
-        'n_regions': len(metadata4),
-        'n_groups': len(groups4),
-        'region_names': metadata4['abbreviation'].tolist(),
-        'group_names': groups4
-    }
+        data_dicts.append(data_dict)
 
-    data5 = {
-        'counts': np.array(counts5, dtype=int),
-        'region_id': np.array(region_id5),
-        'group_id': np.array(group_id5),
-        'n_regions': len(metadata5),
-        'n_groups': len(groups5),
-        'region_names': metadata5['abbreviation'].tolist(),
-        'group_names': groups5
-    }
-
-    return data1, data2, data3, data4, data5
+    return data_dicts
 
 
-def save_data_to_pickle(data1, data2, data3, data4, data5):
+def save_data_to_pickle(data_dicts):
     with open(OUTPUT_PATH, 'wb') as f:
-        pickle.dump((data1, data2, data3, data4, data5), f)
+        pickle.dump(tuple(data_dicts), f)
 
-    print(f"Data saved to {OUTPUT_PATH}")
-    print(f"Regions for dataset 1: {data1['n_regions']} \n"
-          f"Groups for dataset 1: {data1['n_groups']} \n"
-          f"Observations for dataset 1: {len(data1['counts'])} \n")
+    for i, data in enumerate(data_dicts):
+        print(f"Dataset {i + 1}:")
+        print(f"  - Régions: {data['n_regions']}")
+        print(f"  - Groupes: {data['n_groups']}")
+        print(f"  - Observations: {len(data['counts'])}")
+        print(f"  - Groupes: {data['group_names']}")
 
-    print(f"Regions for dataset 2: {data2['n_regions']} \n"
-          f"Groups for dataset 2: {data2['n_groups']} \n"
-          f"Observations for dataset 2: {len(data2['counts'])} \n")
 
-    print(f"Regions for dataset 3: {data3['n_regions']} \n"
-          f"Groups for dataset 3: {data3['n_groups']} \n"
-          f"Observations for dataset 3: {len(data3['counts'])} \n")
+def run():
+    dataset1, dataset2, dataset3, dataset4, dataset5 = load_data_from_dataset()
 
-    print(f"Regions for dataset 4: {data4['n_regions']} \n"
-          f"Groups for dataset 4: {data4['n_groups']} \n"
-          f"Observations for dataset 4: {len(data4['counts'])} \n")
+    data_clean1, data_clean2, data_clean3, data_clean4, data_clean5 = copy_dataset(dataset1, dataset2, dataset3,
+                                                                                   dataset4, dataset5)
 
-    print(f"Regions for dataset 5: {data5['n_regions']} \n"
-          f"Groups for dataset 5: {data5['n_groups']} \n"
-          f"Observations for dataset 5: {len(data5['counts'])} \n")
+    results, metadatas = convert_type_data(data_clean1, data_clean2, data_clean3, data_clean4, data_clean5)
+
+    data_dicts = prepare_data_dicts(results, metadatas)
+
+    save_data_to_pickle(data_dicts)
 
 
 if __name__ == "__main__":
-    load_data_from_dataset()
-
-    copy_dataset(dataset1, dataset2, dataset3, dataset4, dataset5)
-
-    convert_type_data(data_clean1, data_clean2, data_clean3, data_clean4, data_clean5)
-
-    save_data_to_pickle(data1, data2, data3, data4, data5)
+    run()
